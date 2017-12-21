@@ -8,7 +8,7 @@
 #
 ###############################################################################
 
-from bottle import Bottle, template, static_file, request, response
+from bottle import Bottle, template, static_file, request, response, redirect
 import sqlite3, uuid, random
 
 class dbguessapp:
@@ -50,7 +50,6 @@ class dbguessapp:
         )
         """)
   
-
     def new_session(self):
         """
         Add new session to sessions table, generate random number and
@@ -81,6 +80,14 @@ class dbguessapp:
         cursor.execute("SELECT number FROM numbers WHERE key = ?", (key,))
 
         return cursor.fetchone()[0]
+        
+    def delete_session(self, key):
+        """
+        Delete the session from sessions and numbers tables.
+        """
+        cursor = self.cursor()
+        cursor.execute("DELETE FROM numbers WHERE key = ?", (key,))
+        cursor.execute("DELETE FROM sessions WHERE key = ?", (key,))
         
         
         
@@ -117,7 +124,8 @@ def post_index():
 
     # If they guessed right
     if guess == randomNum:
-        messages['output'] = 'Congrats!! ' + str(guess) + ' is the number!'
+        #messages['output'] = 'Congrats!! ' + str(guess) + ' is the number!'
+        return redirect('/win')
 
     # If the guess larger 
     elif guess > randomNum:
@@ -127,9 +135,28 @@ def post_index():
     else:
         messages['output'] = 'Too low...'
 
-    messages['output'] = messages['output'] + ' ..randNum = ' + str(randomNum)
+    #messages['output'] = messages['output'] + ' ..randNum = ' + str(randomNum)
     return template('index.tpl', messages)
 
+@guessApp.post('/newgame')
+def post_newgame():
+    """ Start a new game. Delete session from database. """
+
+    key = request.get_cookie(COOKIE_NAME)
+    guessAppDB.delete_session(key)
+    response.delete_cookie(COOKIE_NAME)
+    
+    return redirect('/')    
+
+@guessApp.route('/win')
+def win():
+    """ Winner page """
+    messages = dict()
+    key = request.get_cookie(COOKIE_NAME)
+    randomNum = guessAppDB.get_number(key)
+    messages['number'] = randomNum
+
+    return template('congrats.tpl', messages)
 
 @guessApp.route('/static/<filepath:path>')
 def static(filepath):

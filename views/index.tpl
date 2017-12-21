@@ -7,14 +7,19 @@
 <body>
 <h1 class="title">Welcome to Guess! </h1>
 <h2 class="title">The number guessing game</h2>
-<form action="/" method="POST">
-	<fieldset>
-	<p>{{output if defined('output') else ""}}</p>
+<fieldset>
 	<legend>Make a guess...</legend>
-	<input type="text" name="guess">
+	<form action="/" method="POST">
+		<p>{{output if defined('output') else ""}}</p>
+		<input type="text" name="guess">
+		<br>
+		<input type="submit" value="Guess!">
+	</form>
 	<br>
-	<input type="submit" value="Guess!">
-	</fieldset>
-</form>
+	<form action="/newgame" method="POST">
+		<input type="submit" value="New Game">
+	</form>
+</fieldset>
+
 </body>
 <html>
