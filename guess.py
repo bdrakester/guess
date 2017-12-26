@@ -46,7 +46,8 @@ class dbguessapp:
         cursor.execute("""
         CREATE TABLE numbers (
             key text,
-            number int
+            number int,
+            guesses int
         )
         """)
   
@@ -66,8 +67,8 @@ class dbguessapp:
         # Import the session key and random integer into numbers table
         cursor = self.cursor()
         cursor.execute("INSERT INTO sessions VALUES (?)", (key,))
-        cursor.execute("INSERT INTO numbers VALUES (?, ?)",
-                       (key, randomNumber))
+        cursor.execute("INSERT INTO numbers VALUES (?, ?, 0)",
+                       (key, randomNumber, guesses))
         self.commit()
 
         return key
@@ -129,11 +130,11 @@ def post_index():
 
     # If the guess larger 
     elif guess > randomNum:
-        messages['output'] = 'Too high...'
+        messages['output'] = str(guess) + ' is too high...'
 
     # Else the guest is smaller
     else:
-        messages['output'] = 'Too low...'
+        messages['output'] = str(guess) + ' is too low...'
 
     #messages['output'] = messages['output'] + ' ..randNum = ' + str(randomNum)
     return template('index.tpl', messages)
