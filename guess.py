@@ -68,7 +68,7 @@ class dbguessapp:
         cursor = self.cursor()
         cursor.execute("INSERT INTO sessions VALUES (?)", (key,))
         cursor.execute("INSERT INTO numbers VALUES (?, ?, 0)",
-                       (key, randomNumber, guesses))
+                       (key, randomNumber))
         self.commit()
 
         return key
@@ -89,8 +89,37 @@ class dbguessapp:
         cursor = self.cursor()
         cursor.execute("DELETE FROM numbers WHERE key = ?", (key,))
         cursor.execute("DELETE FROM sessions WHERE key = ?", (key,))
+
+    def get_guesses(self, key):
+        """
+        Return the number of geusses for the session key
+        """
+        cursor = self.cursor()
+        cursor.execute("SELECT guesses FROM numbers WHERE key = ?", (key,))
+
+        return cursor.fetchone()[0]
+
+    def set_guesses(self, key, guesses):
+        """
+        Set the number of guesses for session key
+        """
+        cursor = self.cursor()
+        cursor.execute("""
+        UPDATE Numbers
+        SET guesses = ?
+        WHERE key = ? 
+        """, (guesses, key))
+
+        self.commit()
         
         
+    def increment_guesses(self, key):
+        """
+        Increment guesses by 1
+        """
+        cursor = self.cursor()
+        guesses = self.get_guesses(key)
+        self.set_guesses(key, guesses + 1)
         
 
 guessApp = Bottle()
@@ -120,6 +149,11 @@ def post_index():
     randomNum = guessAppDB.get_number(key)
     
     guess = request.forms.get('guess', type=int)
+    guessAppDB.increment_guesses(key)
+    
+    ##### BEGIN DEBUG ######
+    #guesses = guessAppDB.get_guesses(key)
+    ##### END DEBUG   ######
 
     messages = dict()
 
@@ -136,7 +170,11 @@ def post_index():
     else:
         messages['output'] = str(guess) + ' is too low...'
 
+    ##### BEGIN DEBUG ######
+    #messages['output'] = messages['output'] + ' guesses = ' + str(guesses)
     #messages['output'] = messages['output'] + ' ..randNum = ' + str(randomNum)
+    ##### END DEBUG   ######
+
     return template('index.tpl', messages)
 
 @guessApp.post('/newgame')
@@ -155,8 +193,11 @@ def win():
     messages = dict()
     key = request.get_cookie(COOKIE_NAME)
     randomNum = guessAppDB.get_number(key)
+    guesses = guessAppDB.get_guesses(key)
+    
     messages['number'] = randomNum
-
+    messages['guesses'] = guesses
+    
     return template('congrats.tpl', messages)
 
 @guessApp.route('/static/<filepath:path>')
