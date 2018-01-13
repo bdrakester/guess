@@ -11,7 +11,7 @@
 	<legend>Make a guess...</legend>
 	<form action="/" method="POST">
 		<p>{{output if defined('output') else ""}}</p>
-		<input type="text" name="guess">
+		<input type="number" name="guess" min="1" max="100">
 		<br>
 		<input type="submit" value="Guess!">
 	</form>
