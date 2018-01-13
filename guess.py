@@ -72,7 +72,20 @@ class dbguessapp:
         self.commit()
 
         return key
-
+    def session_exists(self, key):
+        """
+        Return True if a session for key exists in the database, else return
+        false.
+        """
+        cursor = self.cursor()
+        cursor.execute("SELECT COUNT (key) FROM sessions WHERE key = ?", (key,))
+        if cursor.fetchone()[0] == 1:
+            #print("COUNT == 1")
+            return True
+        else:
+            #print("ELSE ...")
+            return False
+        
     def get_number(self, key):
         """
         Return the random number associated with session key
@@ -136,6 +149,11 @@ def index():
         key = guessAppDB.new_session()
         response.set_cookie(COOKIE_NAME, key)
 
+    # If session cookie exists, but there is no session
+    elif not guessAppDB.session_exists(key):
+        key = guessAppDB.new_session()
+        response.set_cookie(COOKIE_NAME, key)
+        
     messages = dict()
     messages['output'] = ''
 
@@ -146,6 +164,12 @@ def post_index():
     """ Submit a guess """
 
     key = request.get_cookie(COOKIE_NAME)
+
+    # If there is no session for key, create new session
+    if not guessAppDB.session_exists(key):
+        key = guessAppDB.new_session()
+        response.set_cookie(COOKIE_NAME, key)
+    
     randomNum = guessAppDB.get_number(key)
     
     guess = request.forms.get('guess', type=int)
