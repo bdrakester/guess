@@ -1,0 +1,4 @@
+include guess/schema.sql
+graft guess/static
+graft guess/templates
+global-exclude *.pyc

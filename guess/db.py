@@ -2,6 +2,7 @@ import sqlite3
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
+from werkzeug.security import generate_password_hash
 
 
 def get_db():
@@ -37,6 +38,48 @@ def init_db_command():
     click.echo('Initialized database.')
 
 
+@click.command('show-db-user')
+@with_appcontext
+def show_db_user_command():
+    """ Print the user table. """
+    db = get_db()
+    users = db.execute('SELECT * FROM user').fetchall()
+    click.echo('user table:')
+    for row in users:
+        for column in row:
+            click.echo(column, nl=False)
+            click.echo(' | ', nl=False)
+        click.echo()
+
+
+@click.command('add-user')
+@click.argument('username')
+@click.argument('password')
+@with_appcontext
+def add_user_command(username, password):
+    db = get_db()
+    db.execute(
+        'INSERT INTO user (username, password) VALUES (?, ?)',
+        (username, generate_password_hash(password))
+    )
+    db.commit()
+
+@click.command('show-db-game')
+@with_appcontext
+def show_db_game_command():
+    """ Print the game table """
+    db = get_db()
+    games = db.execute('SELECT * FROM game').fetchall()
+    click.echo('game table:')
+    for row in games:
+        for column in row:
+            click.echo(column, nl=False)
+            click.echo(' | ', nl=False)
+        click.echo()
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(show_db_user_command)
+    app.cli.add_command(add_user_command)
+    app.cli.add_command(show_db_game_command)
