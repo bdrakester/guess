@@ -1,3 +1,9 @@
+# Windows
 set FLASK_APP=guess
 set FLASK_ENV=development
+flask run
+
+# Linux
+export FLASK_APP=guess
+export FLASK_ENV=development
 flask run

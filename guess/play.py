@@ -4,6 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 from guess.auth import login_required
 from guess.db import get_db
+from random import randint
 
 bp = Blueprint('play', __name__)
 
@@ -27,7 +28,7 @@ def index():
 def new_game():
     db = get_db()
     # Generate random number
-    number = 50
+    number = randint(1, 100)
     # Create game in database
     db.execute(
         "INSERT INTO game (number, guesses, user_id) VALUES (?, 0, ?)",
